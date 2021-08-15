@@ -34,7 +34,7 @@ contract CakePot is Ownable {
     mapping(uint256 => mapping(address => bool)) public exited;
 
     constructor() {
-        CAKE.approve(address(this), type(uint256).max);
+        CAKE.approve(address(CAKE_MASTER_CHEF), type(uint256).max);
         startSeasonBlock = block.number;
     }
 
