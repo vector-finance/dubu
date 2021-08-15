@@ -7,12 +7,18 @@ import { HardhatUserConfig } from "hardhat/types";
 const config: HardhatUserConfig = {
   solidity: {
     version: "0.8.5",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200,
+      },
+    },
   },
   networks: {
-    popcateum: {
-      url: "https://dataseed.popcateum.org",
+    bsc: {
+      url: "https://bsc-dataseed.binance.org",
       accounts: [process.env.ADMIN || ''],
-      chainId: 1213,
+      chainId: 56,
     },
   },
 };

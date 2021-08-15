@@ -3,7 +3,9 @@ import hardhat from "hardhat";
 async function main() {
     console.log("deploy start")
 
-    //TODO:
+    const CakePot = await hardhat.ethers.getContractFactory("CakePot")
+    const cakePot = await CakePot.deploy()
+    console.log(`CakePot address: ${cakePot.address}`)
 }
 
 main()
