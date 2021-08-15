@@ -5,14 +5,12 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@pancakeswap/pancake-swap-lib/contracts/token/BEP20/IBEP20.sol";
 import "./interfaces/IHanulRNG.sol";
 import "./interfaces/IMasterChef.sol";
-import "./interfaces/IPriceCalculator.sol";
 
 contract CakePot is Ownable {
 
     IHanulRNG private rng = IHanulRNG(0x92eE48b37386b997FAF1571789cd53A7f9b7cdd7);
     IBEP20 private constant CAKE = IBEP20(0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82);
     IMasterChef private constant CAKE_MASTER_CHEF = IMasterChef(0x73feaa1eE314F8c655E354234017bE2193C9E24E);
-    IPriceCalculator private constant priceCalculator = IPriceCalculator(0xF5BF8A9249e3cc4cB684E3f23db9669323d4FB7d);
     
     uint256 public period = 720;
     uint256 public currentSeason = 0;
