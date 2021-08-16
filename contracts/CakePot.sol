@@ -89,7 +89,7 @@ contract CakePot is Ownable {
         rRewards[currentSeason] = maxRCount == 0 ? 0 : totalRReward / maxRCount;
 
         // n
-        srRewards[currentSeason] = (totalReward - ssrReward - totalSRReward - totalRReward) / userCount;
+        nRewards[currentSeason] = (totalReward - ssrReward - totalSRReward - totalRReward) / userCount;
 
         // start next season.
         currentSeason += 1;
