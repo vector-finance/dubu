@@ -89,6 +89,7 @@ abstract contract Ownable is Context {
     }
 }
 
+
 interface IBEP20 {
     /**
      * @dev Returns the amount of tokens in existence.
@@ -213,7 +214,7 @@ contract CakePot is Ownable {
     IBEP20 private constant CAKE = IBEP20(0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82);
     IMasterChef private constant CAKE_MASTER_CHEF = IMasterChef(0x73feaa1eE314F8c655E354234017bE2193C9E24E);
     
-    uint256 public period = 720;
+    uint256 public period = 12;
     uint256 public currentSeason = 0;
     uint256 public startSeasonBlock;
 
@@ -281,13 +282,13 @@ contract CakePot is Ownable {
         uint256 maxSRCount = userCount / 10; // 10%
         uint256 totalSRReward = totalReward / 5; // 20%
         maxSRCounts[currentSeason] = maxSRCount;
-        srRewards[currentSeason] = totalSRReward / maxSRCount;
+        srRewards[currentSeason] = maxSRCount == 0 ? 0 : totalSRReward / maxSRCount;
 
         // r
         uint256 maxRCount = userCount / 5; // 20%
         uint256 totalRReward = totalReward / 10; // 10%
         maxRCounts[currentSeason] = maxRCount;
-        rRewards[currentSeason] = totalRReward / maxRCount;
+        rRewards[currentSeason] = maxRCount == 0 ? 0 : totalRReward / maxRCount;
 
         // n
         srRewards[currentSeason] = (totalReward - ssrReward - totalSRReward - totalRReward) / userCount;

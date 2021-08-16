@@ -80,13 +80,13 @@ contract CakePot is Ownable {
         uint256 maxSRCount = userCount / 10; // 10%
         uint256 totalSRReward = totalReward / 5; // 20%
         maxSRCounts[currentSeason] = maxSRCount;
-        srRewards[currentSeason] = totalSRReward / maxSRCount;
+        srRewards[currentSeason] = maxSRCount == 0 ? 0 : totalSRReward / maxSRCount;
 
         // r
         uint256 maxRCount = userCount / 5; // 20%
         uint256 totalRReward = totalReward / 10; // 10%
         maxRCounts[currentSeason] = maxRCount;
-        rRewards[currentSeason] = totalRReward / maxRCount;
+        rRewards[currentSeason] = maxRCount == 0 ? 0 : totalRReward / maxRCount;
 
         // n
         srRewards[currentSeason] = (totalReward - ssrReward - totalSRReward - totalRReward) / userCount;
