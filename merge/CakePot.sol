@@ -214,7 +214,7 @@ contract CakePot is Ownable {
     IBEP20 private constant CAKE = IBEP20(0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82);
     IMasterChef private constant CAKE_MASTER_CHEF = IMasterChef(0x73feaa1eE314F8c655E354234017bE2193C9E24E);
     
-    uint256 public period = 12;
+    uint256 public period = 720;
     uint256 public currentSeason = 0;
     uint256 public startSeasonBlock;
 
@@ -223,6 +223,7 @@ contract CakePot is Ownable {
     mapping(uint256 => mapping(address => uint256)) public weights;
     mapping(uint256 => uint256) public totalWeights;
     
+    mapping(uint256 => uint256) public maxSSRCounts;
     mapping(uint256 => uint256) public maxSRCounts;
     mapping(uint256 => uint256) public maxRCounts;
     mapping(uint256 => uint256) public ssrRewards;
@@ -230,7 +231,7 @@ contract CakePot is Ownable {
     mapping(uint256 => uint256) public rRewards;
     mapping(uint256 => uint256) public nRewards;
 
-    mapping(uint256 => address) public ssrs;
+    mapping(uint256 => address[]) public ssrs;
     mapping(uint256 => address[]) public srs;
     mapping(uint256 => address[]) public rs;
     mapping(uint256 => mapping(address => bool)) public exited;
@@ -248,9 +249,13 @@ contract CakePot is Ownable {
         period = _period;
     }
 
+    function checkEnd() public view returns (bool) {
+        return block.number - startSeasonBlock > period;
+    }
+
     function enter(uint256 amount) external {
         require(amount > 0);
-        require(block.number - startSeasonBlock <= period);
+        require(checkEnd() != true);
 
         if (amounts[currentSeason][msg.sender] == 0) {
             userCounts[currentSeason] += 1;
@@ -266,7 +271,7 @@ contract CakePot is Ownable {
     }
 
     function end() external {
-        require(block.number - startSeasonBlock > period);
+        require(checkEnd() == true);
 
         uint256 userCount = userCounts[currentSeason];
         (uint256 staked,) = CAKE_MASTER_CHEF.userInfo(0, address(this));
@@ -275,23 +280,25 @@ contract CakePot is Ownable {
         uint256 totalReward = balance - staked;
 
         // ssr
-        uint256 ssrReward = totalReward * 3 / 10; // 30%
-        ssrRewards[currentSeason] = ssrReward;
+        uint256 maxSSRCount = userCount * 3 / 100; // 3%
+        uint256 totalSSRReward = totalReward * 3 / 10; // 30%
+        maxSSRCounts[currentSeason] = maxSSRCount;
+        ssrRewards[currentSeason] = maxSSRCount == 0 ? 0 : totalSSRReward / maxSSRCount;
 
         // sr
-        uint256 maxSRCount = userCount / 10; // 10%
+        uint256 maxSRCount = userCount * 7 / 100; // 7%
         uint256 totalSRReward = totalReward / 5; // 20%
         maxSRCounts[currentSeason] = maxSRCount;
         srRewards[currentSeason] = maxSRCount == 0 ? 0 : totalSRReward / maxSRCount;
 
         // r
-        uint256 maxRCount = userCount / 5; // 20%
+        uint256 maxRCount = userCount * 3 / 20; // 15%
         uint256 totalRReward = totalReward / 10; // 10%
         maxRCounts[currentSeason] = maxRCount;
         rRewards[currentSeason] = maxRCount == 0 ? 0 : totalRReward / maxRCount;
 
         // n
-        srRewards[currentSeason] = (totalReward - ssrReward - totalSRReward - totalRReward) / userCount;
+        nRewards[currentSeason] = (totalReward - totalSSRReward - totalSRReward - totalRReward) / userCount;
 
         // start next season.
         currentSeason += 1;
@@ -304,19 +311,19 @@ contract CakePot is Ownable {
 
         uint256 a = userCounts[season] * totalWeights[season] / weights[season][msg.sender];
         uint256 k = (rng.generateRandomNumber(season, msg.sender) % 100) * a;
-        if (ssrs[season] == address(0) && k == 0) { // 1%, ssr
-            ssrs[season] = msg.sender;
+        if (ssrs[season].length < maxSSRCounts[season] && k < 3) { // 3%, sr
+            ssrs[season].push(msg.sender);
             CAKE.transfer(msg.sender, ssrRewards[season]);
         }
         
         k = (rng.generateRandomNumber(season, msg.sender) % 100) * a;
-        if (srs[season].length < maxSRCounts[season] && k < 10) { // 10%, sr
+        if (srs[season].length < maxSRCounts[season] && k < 7) { // 7%, sr
             srs[season].push(msg.sender);
             CAKE.transfer(msg.sender, srRewards[season]);
         }
         
         k = (rng.generateRandomNumber(season, msg.sender) % 100) * a;
-        if (rs[season].length < maxRCounts[season] && k < 20) { // 20%, r
+        if (rs[season].length < maxRCounts[season] && k < 15) { // 15%, r
             rs[season].push(msg.sender);
             CAKE.transfer(msg.sender, rRewards[season]);
         }
