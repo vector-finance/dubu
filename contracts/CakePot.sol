@@ -3,23 +3,25 @@ pragma solidity ^0.8.5;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@pancakeswap/pancake-swap-lib/contracts/token/BEP20/IBEP20.sol";
+import "./interfaces/ICakePot.sol";
 import "./interfaces/IHanulRNG.sol";
 import "./interfaces/IMasterChef.sol";
 
-contract CakePot is Ownable {
+contract CakePot is Ownable, ICakePot {
 
     IHanulRNG private rng = IHanulRNG(0x92eE48b37386b997FAF1571789cd53A7f9b7cdd7);
     IBEP20 private constant CAKE = IBEP20(0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82);
     IMasterChef private constant CAKE_MASTER_CHEF = IMasterChef(0x73feaa1eE314F8c655E354234017bE2193C9E24E);
     
     uint256 public period = 720;
-    uint256 public currentSeason = 0;
+    uint256 override public currentSeason = 0;
     uint256 public startSeasonBlock;
 
-    mapping(uint256 => uint256) public userCounts;
-    mapping(uint256 => mapping(address => uint256)) public amounts;
-    mapping(uint256 => mapping(address => uint256)) public weights;
-    mapping(uint256 => uint256) public totalWeights;
+    mapping(uint256 => uint256) override public userCounts;
+    mapping(uint256 => mapping(address => uint256)) override public amounts;
+    mapping(uint256 => uint256) override public totalAmounts;
+    mapping(uint256 => mapping(address => uint256)) override public weights;
+    mapping(uint256 => uint256) override public totalWeights;
     
     mapping(uint256 => uint256) public maxSSRCounts;
     mapping(uint256 => uint256) public maxSRCounts;
@@ -29,14 +31,15 @@ contract CakePot is Ownable {
     mapping(uint256 => uint256) public rRewards;
     mapping(uint256 => uint256) public nRewards;
 
-    mapping(uint256 => address[]) public ssrs;
-    mapping(uint256 => address[]) public srs;
-    mapping(uint256 => address[]) public rs;
+    mapping(uint256 => address[]) override public ssrs;
+    mapping(uint256 => address[]) override public srs;
+    mapping(uint256 => address[]) override public rs;
     mapping(uint256 => mapping(address => bool)) public exited;
 
     constructor() {
         CAKE.approve(address(CAKE_MASTER_CHEF), type(uint256).max);
         startSeasonBlock = block.number;
+        emit Start(0);
     }
 
     function setRNG(IHanulRNG _rng) external onlyOwner {
@@ -47,11 +50,11 @@ contract CakePot is Ownable {
         period = _period;
     }
 
-    function checkEnd() public view returns (bool) {
+    function checkEnd() override public view returns (bool) {
         return block.number - startSeasonBlock > period;
     }
 
-    function enter(uint256 amount) external {
+    function enter(uint256 amount) override external {
         require(amount > 0);
         require(checkEnd() != true);
 
@@ -60,15 +63,18 @@ contract CakePot is Ownable {
         }
         
         amounts[currentSeason][msg.sender] += amount;
+        totalAmounts[currentSeason] += amount;
         uint256 weight = (period - (block.number - startSeasonBlock)) * amount;
         weights[currentSeason][msg.sender] += weight;
         totalWeights[currentSeason] += weight;
 
         CAKE.transferFrom(msg.sender, address(this), amount);
         CAKE_MASTER_CHEF.enterStaking(amount);
+
+        emit Enter(currentSeason, msg.sender, amount);
     }
 
-    function end() external {
+    function end() override external {
         require(checkEnd() == true);
 
         uint256 userCount = userCounts[currentSeason];
@@ -98,12 +104,15 @@ contract CakePot is Ownable {
         // n
         nRewards[currentSeason] = (totalReward - totalSSRReward - totalSRReward - totalRReward) / userCount;
 
+        emit End(currentSeason);
+
         // start next season.
         currentSeason += 1;
         startSeasonBlock = block.number;
+        emit Start(currentSeason);
     }
 
-    function exit(uint256 season) external {
+    function exit(uint256 season) override external {
         require(season < currentSeason);
         require(exited[season][msg.sender] != true);
 
@@ -132,5 +141,7 @@ contract CakePot is Ownable {
         CAKE.transfer(msg.sender, amount);
 
         exited[season][msg.sender] = true;
+        
+        emit Enter(season, msg.sender, amount);
     }
 }
