@@ -102,7 +102,7 @@ contract CakePot is Ownable, ICakePot {
         rRewards[currentSeason] = maxRCount == 0 ? 0 : totalRReward / maxRCount;
 
         // n
-        nRewards[currentSeason] = (totalReward - totalSSRReward - totalSRReward - totalRReward) / userCount;
+        nRewards[currentSeason] = userCount == 0 ? 0 : (totalReward - totalSSRReward - totalSRReward - totalRReward) / userCount;
 
         emit End(currentSeason);
 
@@ -117,8 +117,9 @@ contract CakePot is Ownable, ICakePot {
         require(exited[season][msg.sender] != true);
 
         uint256 amount = amounts[season][msg.sender] + nRewards[season];
+        uint256 weight = weights[season][msg.sender];
 
-        uint256 a = userCounts[season] * totalWeights[season] / weights[season][msg.sender];
+        uint256 a = userCounts[season] * totalWeights[season] / weight;
         uint256 k = (rng.generateRandomNumber(season, msg.sender) % 100) * a;
         if (ssrs[season].length < maxSSRCounts[season] && k < 3) { // 3%, sr
             ssrs[season].push(msg.sender);
