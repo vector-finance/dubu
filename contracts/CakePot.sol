@@ -6,8 +6,9 @@ import "@pancakeswap/pancake-swap-lib/contracts/token/BEP20/IBEP20.sol";
 import "./interfaces/ICakePot.sol";
 import "./interfaces/IHanulRNG.sol";
 import "./interfaces/IMasterChef.sol";
+import "./DubuDividend.sol";
 
-contract CakePot is Ownable, ICakePot {
+contract CakePot is Ownable, ICakePot, DubuDividend {
 
     IHanulRNG private rng = IHanulRNG(0x92eE48b37386b997FAF1571789cd53A7f9b7cdd7);
     IBEP20 private constant CAKE = IBEP20(0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82);
@@ -71,6 +72,7 @@ contract CakePot is Ownable, ICakePot {
         CAKE.transferFrom(msg.sender, address(this), amount);
         CAKE_MASTER_CHEF.enterStaking(amount);
 
+        _enter(amount);
         emit Enter(currentSeason, msg.sender, amount);
     }
 
@@ -143,6 +145,7 @@ contract CakePot is Ownable, ICakePot {
 
         exited[season][msg.sender] = true;
         
-        emit Enter(season, msg.sender, amount);
+        _exit(amount);
+        emit Exit(season, msg.sender, amount);
     }
 }
