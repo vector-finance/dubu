@@ -7,7 +7,11 @@ import "./interfaces/IDubuDividend.sol";
 contract DubuDividend is IDubuDividend {
 
     IBEP20 private constant DUBU = IBEP20(0x0000000000000000000000000000000000000000);
-    IBEP20 private constant CAKE = IBEP20(0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82);
+    IBEP20 private token;
+
+    constructor(IBEP20 _token) {
+        token = _token;
+    }
 
     uint256 internal currentBalance = 0;
     mapping(address => uint256) internal cakeBalances;
@@ -18,7 +22,7 @@ contract DubuDividend is IDubuDividend {
     mapping(address => uint256) internal claimed;
 
     function updateBalance() internal {
-        uint256 totalBalance = CAKE.balanceOf(address(this));
+        uint256 totalBalance = token.balanceOf(address(this));
         require(totalBalance > 0);
         uint256 balance = DUBU.balanceOf(address(this));
         uint256 value = balance - currentBalance;
@@ -35,7 +39,7 @@ contract DubuDividend is IDubuDividend {
 
     function accumulativeOf(address owner) override public view returns (uint256) {
         uint256 _pointsPerShare = pointsPerShare;
-        uint256 totalBalance = CAKE.balanceOf(address(this));
+        uint256 totalBalance = token.balanceOf(address(this));
         require(totalBalance > 0);
         uint256 balance = DUBU.balanceOf(address(this));
         uint256 value = balance - currentBalance;

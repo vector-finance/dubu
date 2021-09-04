@@ -3,16 +3,15 @@ pragma solidity ^0.8.5;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@pancakeswap/pancake-swap-lib/contracts/token/BEP20/IBEP20.sol";
-import "./interfaces/ICakePot.sol";
+import "./interfaces/IDubuPot.sol";
 import "./interfaces/IHanulRNG.sol";
 import "./interfaces/IMasterChef.sol";
 import "./DubuDividend.sol";
 
-contract CakePot is Ownable, ICakePot, DubuDividend {
+contract DubuPot is Ownable, IDubuPot, DubuDividend {
 
     IHanulRNG private rng = IHanulRNG(0x92eE48b37386b997FAF1571789cd53A7f9b7cdd7);
-    IBEP20 private constant CAKE = IBEP20(0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82);
-    IMasterChef private constant CAKE_MASTER_CHEF = IMasterChef(0x73feaa1eE314F8c655E354234017bE2193C9E24E);
+    IBEP20 private constant DUBU = IBEP20(0x0000000000000000000000000000000000000000);
     
     uint256 public period = 720;
     uint256 override public currentSeason = 0;
@@ -37,8 +36,8 @@ contract CakePot is Ownable, ICakePot, DubuDividend {
     mapping(uint256 => address[]) override public rs;
     mapping(uint256 => mapping(address => bool)) public exited;
 
-    constructor() DubuDividend(CAKE) {
-        CAKE.approve(address(CAKE_MASTER_CHEF), type(uint256).max);
+    constructor() DubuDividend(DUBU) {
+        //CAKE.approve(address(CAKE_MASTER_CHEF), type(uint256).max);
         startSeasonBlock = block.number;
         emit Start(0);
     }
@@ -69,8 +68,8 @@ contract CakePot is Ownable, ICakePot, DubuDividend {
         weights[currentSeason][msg.sender] += weight;
         totalWeights[currentSeason] += weight;
 
-        CAKE.transferFrom(msg.sender, address(this), amount);
-        CAKE_MASTER_CHEF.enterStaking(amount);
+        //CAKE.transferFrom(msg.sender, address(this), amount);
+        //CAKE_MASTER_CHEF.enterStaking(amount);
 
         _enter(amount);
         emit Enter(currentSeason, msg.sender, amount);
@@ -80,10 +79,10 @@ contract CakePot is Ownable, ICakePot, DubuDividend {
         require(checkEnd() == true);
 
         uint256 userCount = userCounts[currentSeason];
-        (uint256 staked,) = CAKE_MASTER_CHEF.userInfo(0, address(this));
-        CAKE_MASTER_CHEF.leaveStaking(staked);
-        uint256 balance = CAKE.balanceOf(address(this));
-        uint256 totalReward = balance - staked;
+        //(uint256 staked,) = CAKE_MASTER_CHEF.userInfo(0, address(this));
+        //CAKE_MASTER_CHEF.leaveStaking(staked);
+        //uint256 balance = CAKE.balanceOf(address(this));
+        uint256 totalReward = 0;//balance - staked;
 
         // ssr
         uint256 maxSSRCount = userCount * 3 / 100; // 3%
@@ -141,7 +140,7 @@ contract CakePot is Ownable, ICakePot, DubuDividend {
         }
 
         // n
-        CAKE.transfer(msg.sender, amount);
+        //CAKE.transfer(msg.sender, amount);
 
         exited[season][msg.sender] = true;
         
