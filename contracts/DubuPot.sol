@@ -2,16 +2,15 @@
 pragma solidity ^0.8.5;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@pancakeswap/pancake-swap-lib/contracts/token/BEP20/IBEP20.sol";
 import "./interfaces/IDubuPot.sol";
 import "./interfaces/IHanulRNG.sol";
-import "./interfaces/IMasterChef.sol";
+import "./interfaces/IDubuChef.sol";
 import "./DubuDividend.sol";
 
 contract DubuPot is Ownable, IDubuPot, DubuDividend {
 
     IHanulRNG private rng = IHanulRNG(0x92eE48b37386b997FAF1571789cd53A7f9b7cdd7);
-    IBEP20 private constant DUBU = IBEP20(0x972543fe8BeC404AB14e0c38e942032297f44B2A);
+    IDubuChef private constant DUBU_CHEF = IDubuChef(0x73feaa1eE314F8c655E354234017bE2193C9E24E);
     
     uint256 public period = 720;
     uint256 override public currentSeason = 0;
@@ -37,7 +36,7 @@ contract DubuPot is Ownable, IDubuPot, DubuDividend {
     mapping(uint256 => mapping(address => bool)) public exited;
 
     constructor() DubuDividend() {
-        //CAKE.approve(address(CAKE_MASTER_CHEF), type(uint256).max);
+        DUBU.approve(address(DUBU_CHEF), type(uint256).max);
         startSeasonBlock = block.number;
         emit Start(0);
     }
@@ -68,8 +67,8 @@ contract DubuPot is Ownable, IDubuPot, DubuDividend {
         weights[currentSeason][msg.sender] += weight;
         totalWeights[currentSeason] += weight;
 
-        //CAKE.transferFrom(msg.sender, address(this), amount);
-        //CAKE_MASTER_CHEF.enterStaking(amount);
+        DUBU.transferFrom(msg.sender, address(this), amount);
+        DUBU_CHEF.enter(amount);
 
         _enter(amount);
         emit Enter(currentSeason, msg.sender, amount);
@@ -79,10 +78,10 @@ contract DubuPot is Ownable, IDubuPot, DubuDividend {
         require(checkEnd() == true);
 
         uint256 userCount = userCounts[currentSeason];
-        //(uint256 staked,) = CAKE_MASTER_CHEF.userInfo(0, address(this));
-        //CAKE_MASTER_CHEF.leaveStaking(staked);
-        //uint256 balance = CAKE.balanceOf(address(this));
-        uint256 totalReward = 0;//balance - staked;
+        uint256 staked = DUBU_CHEF.tokenBalances(address(this));
+        DUBU_CHEF.exit(staked);
+        uint256 balance = DUBU.balanceOf(address(this));
+        uint256 totalReward = balance - staked;
 
         // ssr
         uint256 maxSSRCount = userCount * 3 / 100; // 3%
@@ -143,7 +142,7 @@ contract DubuPot is Ownable, IDubuPot, DubuDividend {
         }
 
         // n
-        //CAKE.transfer(msg.sender, amount);
+        DUBU.transfer(msg.sender, amount);
 
         exited[season][msg.sender] = true;
         

@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.5;
 
-interface ICakePot {
+import "./IDubuDividend.sol";
+
+interface ICakePot is IDubuDividend {
 
     event Start(uint256 indexed season);
     event End(uint256 indexed season);
