@@ -2,19 +2,23 @@
 pragma solidity ^0.8.5;
 
 import "@pancakeswap/pancake-swap-lib/contracts/token/BEP20/IBEP20.sol";
+import "./interfaces/IDubuEmitter.sol";
 import "./interfaces/IDubuDividend.sol";
 
 contract DubuDividend is IDubuDividend {
 
-    IBEP20 private constant DUBU = IBEP20(0x0000000000000000000000000000000000000000);
-    IBEP20 private token;
+    IDubuEmitter private constant DUBU_EMITTER = IDubuEmitter(0xDDb921d4F0264c10884D652E3aB9704F8189DAf4);
+    IBEP20 private constant DUBU = IBEP20(0x972543fe8BeC404AB14e0c38e942032297f44B2A);
 
-    constructor(IBEP20 _token) {
-        token = _token;
+    uint256 private immutable pid;
+
+    constructor() {
+        pid = DUBU_EMITTER.poolCount();
     }
 
     uint256 internal currentBalance = 0;
-    mapping(address => uint256) internal cakeBalances;
+    uint256 internal totalTokenBalance = 0;
+    mapping(address => uint256) internal tokenBalances;
 
     uint256 constant internal pointsMultiplier = 2**128;
     uint256 internal pointsPerShare = 0;
@@ -22,15 +26,16 @@ contract DubuDividend is IDubuDividend {
     mapping(address => uint256) internal claimed;
 
     function updateBalance() internal {
-        uint256 totalBalance = token.balanceOf(address(this));
-        require(totalBalance > 0);
-        uint256 balance = DUBU.balanceOf(address(this));
-        uint256 value = balance - currentBalance;
-        if (value > 0) {
-            pointsPerShare += value * pointsMultiplier / totalBalance;
-            emit Distribute(msg.sender, value);
+        if (totalTokenBalance > 0) {
+            DUBU_EMITTER.updatePool(pid);
+            uint256 balance = DUBU.balanceOf(address(this));
+            uint256 value = balance - currentBalance;
+            if (value > 0) {
+                pointsPerShare += value * pointsMultiplier / totalTokenBalance;
+                emit Distribute(msg.sender, value);
+            }
+            currentBalance = balance;
         }
-        currentBalance = balance;
     }
 
     function claimedOf(address owner) override public view returns (uint256) {
@@ -39,14 +44,15 @@ contract DubuDividend is IDubuDividend {
 
     function accumulativeOf(address owner) override public view returns (uint256) {
         uint256 _pointsPerShare = pointsPerShare;
-        uint256 totalBalance = token.balanceOf(address(this));
-        require(totalBalance > 0);
-        uint256 balance = DUBU.balanceOf(address(this));
-        uint256 value = balance - currentBalance;
-        if (value > 0) {
-            _pointsPerShare += value * pointsMultiplier / totalBalance;
+        if (totalTokenBalance > 0) {
+            uint256 balance = DUBU_EMITTER.pendingToken(pid) + DUBU.balanceOf(address(this));
+            uint256 value = balance - currentBalance;
+            if (value > 0) {
+                _pointsPerShare += value * pointsMultiplier / totalTokenBalance;
+            }
+            return uint256(int256(_pointsPerShare * tokenBalances[owner]) + pointsCorrection[owner]) / pointsMultiplier;
         }
-        return uint256(int256(_pointsPerShare * cakeBalances[owner]) + pointsCorrection[owner]) / pointsMultiplier;
+        return 0;
     }
 
     function claimableOf(address owner) override external view returns (uint256) {
@@ -54,7 +60,7 @@ contract DubuDividend is IDubuDividend {
     }
 
     function _accumulativeOf(address owner) internal view returns (uint256) {
-        return uint256(int256(pointsPerShare * cakeBalances[owner]) + pointsCorrection[owner]) / pointsMultiplier;
+        return uint256(int256(pointsPerShare * tokenBalances[owner]) + pointsCorrection[owner]) / pointsMultiplier;
     }
 
     function _claimableOf(address owner) internal view returns (uint256) {
@@ -74,13 +80,15 @@ contract DubuDividend is IDubuDividend {
 
     function _enter(uint256 amount) internal {
         updateBalance();
-        cakeBalances[msg.sender] += amount;
+        totalTokenBalance += amount;
+        tokenBalances[msg.sender] += amount;
         pointsCorrection[msg.sender] -= int256(pointsPerShare * amount);
     }
 
     function _exit(uint256 amount) internal {
         updateBalance();
-        cakeBalances[msg.sender] -= amount;
+        totalTokenBalance -= amount;
+        tokenBalances[msg.sender] -= amount;
         pointsCorrection[msg.sender] += int256(pointsPerShare * amount);
     }
 }

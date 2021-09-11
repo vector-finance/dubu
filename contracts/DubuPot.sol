@@ -11,7 +11,7 @@ import "./DubuDividend.sol";
 contract DubuPot is Ownable, IDubuPot, DubuDividend {
 
     IHanulRNG private rng = IHanulRNG(0x92eE48b37386b997FAF1571789cd53A7f9b7cdd7);
-    IBEP20 private constant DUBU = IBEP20(0x0000000000000000000000000000000000000000);
+    IBEP20 private constant DUBU = IBEP20(0x972543fe8BeC404AB14e0c38e942032297f44B2A);
     
     uint256 public period = 720;
     uint256 override public currentSeason = 0;
@@ -36,7 +36,7 @@ contract DubuPot is Ownable, IDubuPot, DubuDividend {
     mapping(uint256 => address[]) override public rs;
     mapping(uint256 => mapping(address => bool)) public exited;
 
-    constructor() DubuDividend(DUBU) {
+    constructor() DubuDividend() {
         //CAKE.approve(address(CAKE_MASTER_CHEF), type(uint256).max);
         startSeasonBlock = block.number;
         emit Start(0);
@@ -117,7 +117,10 @@ contract DubuPot is Ownable, IDubuPot, DubuDividend {
         require(season < currentSeason);
         require(exited[season][msg.sender] != true);
 
-        uint256 amount = amounts[season][msg.sender] + nRewards[season];
+        uint256 enterAmount = amounts[season][msg.sender];
+        _exit(enterAmount);
+
+        uint256 amount = enterAmount + nRewards[season];
         uint256 weight = weights[season][msg.sender];
 
         uint256 a = userCounts[season] * totalWeights[season] / weight;
@@ -144,7 +147,6 @@ contract DubuPot is Ownable, IDubuPot, DubuDividend {
 
         exited[season][msg.sender] = true;
         
-        _exit(amount);
         emit Exit(season, msg.sender, amount);
     }
 }

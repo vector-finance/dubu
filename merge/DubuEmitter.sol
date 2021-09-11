@@ -1,8 +1,7 @@
-// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.5;
 
 
-
+// SPDX-License-Identifier: MIT
 /*
  * @dev Provides information about the current execution context, including the
  * sender of the transaction and its data. While these are generally available
@@ -23,7 +22,7 @@ abstract contract Context {
     }
 }
 
-
+// SPDX-License-Identifier: MIT
 /**
  * @dev Contract module which provides a basic access control mechanism, where
  * there is an account (an owner) that can be granted exclusive access to
@@ -90,7 +89,7 @@ abstract contract Ownable is Context {
     }
 }
 
-
+// SPDX-License-Identifier: MIT
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP.
  */
@@ -169,7 +168,7 @@ interface IERC20 {
     event Approval(address indexed owner, address indexed spender, uint256 value);
 }
 
-
+// SPDX-License-Identifier: MIT
 interface IFungibleToken is IERC20 {
     
     function version() external view returns (string memory);
@@ -189,12 +188,12 @@ interface IFungibleToken is IERC20 {
     ) external;
 }
 
-
+// SPDX-License-Identifier: MIT
 interface IDubu is IFungibleToken {
     function mint(address to, uint256 amount) external;
 }
 
-
+// SPDX-License-Identifier: MIT
 interface IDubuEmitter {
 
     event Add(address to, uint256 allocPoint);
@@ -216,7 +215,7 @@ interface IDubuEmitter {
     function updatePool(uint256 pid) external;
 }
 
-
+// SPDX-License-Identifier: MIT
 /**
  * @dev Interface for the optional metadata functions from the ERC20 standard.
  *
@@ -239,7 +238,7 @@ interface IERC20Metadata is IERC20 {
     function decimals() external view returns (uint8);
 }
 
-
+// SPDX-License-Identifier: MIT
 /**
  * @dev Implementation of the {IERC20} interface.
  *
@@ -587,7 +586,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
     ) internal virtual {}
 }
 
-
+// SPDX-License-Identifier: MIT
 /**
  * @dev Collection of functions related to the address type
  */
@@ -795,12 +794,12 @@ library Address {
     }
 }
 
-
+// SPDX-License-Identifier: MIT
 interface IERC1271 {
     function isValidSignature(bytes32 hash, bytes memory signature) external view returns (bytes4 magicValue);
 }
 
-
+// SPDX-License-Identifier: MIT
 contract FungibleToken is ERC20, IFungibleToken {
 
     string public override version;
@@ -878,7 +877,7 @@ contract FungibleToken is ERC20, IFungibleToken {
     }
 }
 
-
+// SPDX-License-Identifier: MIT
 contract Dubu is FungibleToken, IDubu {
 
     IDubuEmitter public emitter;
@@ -897,7 +896,7 @@ contract Dubu is FungibleToken, IDubu {
     }
 }
 
-
+// SPDX-License-Identifier: MIT
 contract DubuEmitter is Ownable, IDubuEmitter {
     uint256 private constant PRECISION = 1e20;
     

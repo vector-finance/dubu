@@ -37,7 +37,7 @@ contract CakePot is Ownable, ICakePot, DubuDividend {
     mapping(uint256 => address[]) override public rs;
     mapping(uint256 => mapping(address => bool)) public exited;
 
-    constructor() DubuDividend(CAKE) {
+    constructor() DubuDividend() {
         CAKE.approve(address(CAKE_MASTER_CHEF), type(uint256).max);
         startSeasonBlock = block.number;
         emit Start(0);
@@ -117,8 +117,11 @@ contract CakePot is Ownable, ICakePot, DubuDividend {
     function exit(uint256 season) override external {
         require(season < currentSeason);
         require(exited[season][msg.sender] != true);
+        
+        uint256 enterAmount = amounts[season][msg.sender];
+        _exit(enterAmount);
 
-        uint256 amount = amounts[season][msg.sender] + nRewards[season];
+        uint256 amount = enterAmount + nRewards[season];
         uint256 weight = weights[season][msg.sender];
 
         uint256 a = userCounts[season] * totalWeights[season] / weight;
@@ -145,7 +148,6 @@ contract CakePot is Ownable, ICakePot, DubuDividend {
 
         exited[season][msg.sender] = true;
         
-        _exit(amount);
         emit Exit(season, msg.sender, amount);
     }
 }
