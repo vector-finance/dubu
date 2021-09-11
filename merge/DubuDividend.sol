@@ -229,6 +229,9 @@ interface IDubuDividend {
     event Distribute(address indexed by, uint256 distributed);
     event Claim(address indexed to, uint256 claimed);
 
+    function totalTokenBalance() external view returns (uint256);
+    function tokenBalances(address owner) external view returns (uint256);
+
     function accumulativeOf(address owner) external view returns (uint256);
     function claimedOf(address owner) external view returns (uint256);
     function claimableOf(address owner) external view returns (uint256);
@@ -239,7 +242,7 @@ interface IDubuDividend {
 contract DubuDividend is IDubuDividend {
 
     IDubuEmitter private constant DUBU_EMITTER = IDubuEmitter(0xDDb921d4F0264c10884D652E3aB9704F8189DAf4);
-    IBEP20 private constant DUBU = IBEP20(0x972543fe8BeC404AB14e0c38e942032297f44B2A);
+    IBEP20 internal constant DUBU = IBEP20(0x972543fe8BeC404AB14e0c38e942032297f44B2A);
 
     uint256 private immutable pid;
 
@@ -248,8 +251,9 @@ contract DubuDividend is IDubuDividend {
     }
 
     uint256 internal currentBalance = 0;
-    uint256 internal totalTokenBalance = 0;
-    mapping(address => uint256) internal tokenBalances;
+    
+    uint256 override public totalTokenBalance = 0;
+    mapping(address => uint256) override public tokenBalances;
 
     uint256 constant internal pointsMultiplier = 2**128;
     uint256 internal pointsPerShare = 0;

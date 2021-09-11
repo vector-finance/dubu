@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.5;
 
 
-// SPDX-License-Identifier: MIT
+
 /*
  * @dev Provides information about the current execution context, including the
  * sender of the transaction and its data. While these are generally available
@@ -22,7 +23,7 @@ abstract contract Context {
     }
 }
 
-// SPDX-License-Identifier: MIT
+
 /**
  * @dev Contract module which provides a basic access control mechanism, where
  * there is an account (an owner) that can be granted exclusive access to
@@ -89,7 +90,62 @@ abstract contract Ownable is Context {
     }
 }
 
-// SPDX-License-Identifier: GPL-3.0-or-later
+
+interface IDubuDividend {
+
+    event Distribute(address indexed by, uint256 distributed);
+    event Claim(address indexed to, uint256 claimed);
+
+    function totalTokenBalance() external view returns (uint256);
+    function tokenBalances(address owner) external view returns (uint256);
+
+    function accumulativeOf(address owner) external view returns (uint256);
+    function claimedOf(address owner) external view returns (uint256);
+    function claimableOf(address owner) external view returns (uint256);
+    function claim() external;
+}
+
+
+interface IDubuPot is IDubuDividend {
+
+    event Start(uint256 indexed season);
+    event End(uint256 indexed season);
+    event Enter(uint256 indexed season, address indexed who, uint256 amount);
+    event Exit(uint256 indexed season, address indexed who, uint256 amount);
+    
+    function currentSeason() external view returns (uint256);
+    
+    function userCounts(uint256 season) external view returns (uint256);
+    function amounts(uint256 season, address who) external view returns (uint256);
+    function totalAmounts(uint256 season) external view returns (uint256);
+    function weights(uint256 season, address who) external view returns (uint256);
+    function totalWeights(uint256 season) external view returns (uint256);
+    
+    function ssrs(uint256 season, uint256 index) external view returns (address);
+    function srs(uint256 season, uint256 index) external view returns (address);
+    function rs(uint256 season, uint256 index) external view returns (address);
+    
+    function checkEnd() external view returns (bool);
+    function enter(uint256 amount) external;
+    function end() external;
+    function exit(uint256 season) external;
+}
+
+
+interface IHanulRNG {
+    function generateRandomNumber(uint256 seed, address sender) external returns (uint256);
+}
+
+
+interface IDubuChef is IDubuDividend {
+
+    event Enter(address indexed who, uint256 amount);
+    event Exit(address indexed who, uint256 amount);
+    
+    function enter(uint256 amount) external;
+    function exit(uint256 amount) external;
+}
+
 interface IBEP20 {
     /**
      * @dev Returns the amount of tokens in existence.
@@ -185,55 +241,7 @@ interface IBEP20 {
     event Approval(address indexed owner, address indexed spender, uint256 value);
 }
 
-// SPDX-License-Identifier: MIT
-interface IDubuPot {
 
-    event Start(uint256 indexed season);
-    event End(uint256 indexed season);
-    event Enter(uint256 indexed season, address indexed who, uint256 amount);
-    event Exit(uint256 indexed season, address indexed who, uint256 amount);
-    
-    function currentSeason() external view returns (uint256);
-    
-    function userCounts(uint256 season) external view returns (uint256);
-    function amounts(uint256 season, address who) external view returns (uint256);
-    function totalAmounts(uint256 season) external view returns (uint256);
-    function weights(uint256 season, address who) external view returns (uint256);
-    function totalWeights(uint256 season) external view returns (uint256);
-    
-    function ssrs(uint256 season, uint256 index) external view returns (address);
-    function srs(uint256 season, uint256 index) external view returns (address);
-    function rs(uint256 season, uint256 index) external view returns (address);
-    
-    function checkEnd() external view returns (bool);
-    function enter(uint256 amount) external;
-    function end() external;
-    function exit(uint256 season) external;
-}
-
-// SPDX-License-Identifier: MIT
-interface IHanulRNG {
-    function generateRandomNumber(uint256 seed, address sender) external returns (uint256);
-}
-
-// SPDX-License-Identifier: MIT
-interface IMasterChef {
-    function cakePerBlock() view external returns(uint);
-    function totalAllocPoint() view external returns(uint);
-
-    function poolInfo(uint _pid) view external returns(address lpToken, uint allocPoint, uint lastRewardBlock, uint accCakePerShare);
-    function userInfo(uint _pid, address _account) view external returns(uint amount, uint rewardDebt);
-    function poolLength() view external returns(uint);
-
-    function deposit(uint256 _pid, uint256 _amount) external;
-    function withdraw(uint256 _pid, uint256 _amount) external;
-    function emergencyWithdraw(uint256 _pid) external;
-
-    function enterStaking(uint256 _amount) external;
-    function leaveStaking(uint256 _amount) external;
-}
-
-// SPDX-License-Identifier: MIT
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP.
  */
@@ -312,7 +320,7 @@ interface IERC20 {
     event Approval(address indexed owner, address indexed spender, uint256 value);
 }
 
-// SPDX-License-Identifier: MIT
+
 interface IFungibleToken is IERC20 {
     
     function version() external view returns (string memory);
@@ -332,12 +340,12 @@ interface IFungibleToken is IERC20 {
     ) external;
 }
 
-// SPDX-License-Identifier: MIT
+
 interface IDubu is IFungibleToken {
     function mint(address to, uint256 amount) external;
 }
 
-// SPDX-License-Identifier: MIT
+
 interface IDubuEmitter {
 
     event Add(address to, uint256 allocPoint);
@@ -359,23 +367,11 @@ interface IDubuEmitter {
     function updatePool(uint256 pid) external;
 }
 
-// SPDX-License-Identifier: MIT
-interface IDubuDividend {
 
-    event Distribute(address indexed by, uint256 distributed);
-    event Claim(address indexed to, uint256 claimed);
-
-    function accumulativeOf(address owner) external view returns (uint256);
-    function claimedOf(address owner) external view returns (uint256);
-    function claimableOf(address owner) external view returns (uint256);
-    function claim() external;
-}
-
-// SPDX-License-Identifier: MIT
 contract DubuDividend is IDubuDividend {
 
     IDubuEmitter private constant DUBU_EMITTER = IDubuEmitter(0xDDb921d4F0264c10884D652E3aB9704F8189DAf4);
-    IBEP20 private constant DUBU = IBEP20(0x972543fe8BeC404AB14e0c38e942032297f44B2A);
+    IBEP20 internal constant DUBU = IBEP20(0x972543fe8BeC404AB14e0c38e942032297f44B2A);
 
     uint256 private immutable pid;
 
@@ -384,8 +380,9 @@ contract DubuDividend is IDubuDividend {
     }
 
     uint256 internal currentBalance = 0;
-    uint256 internal totalTokenBalance = 0;
-    mapping(address => uint256) internal tokenBalances;
+    
+    uint256 override public totalTokenBalance = 0;
+    mapping(address => uint256) override public tokenBalances;
 
     uint256 constant internal pointsMultiplier = 2**128;
     uint256 internal pointsPerShare = 0;
@@ -460,11 +457,11 @@ contract DubuDividend is IDubuDividend {
     }
 }
 
-// SPDX-License-Identifier: MIT
+
 contract DubuPot is Ownable, IDubuPot, DubuDividend {
 
     IHanulRNG private rng = IHanulRNG(0x92eE48b37386b997FAF1571789cd53A7f9b7cdd7);
-    IBEP20 private constant DUBU = IBEP20(0x972543fe8BeC404AB14e0c38e942032297f44B2A);
+    IDubuChef private constant DUBU_CHEF = IDubuChef(0xd9e7d7428E320D3c25670e47317C3854f6B7A397);
     
     uint256 public period = 720;
     uint256 override public currentSeason = 0;
@@ -490,7 +487,7 @@ contract DubuPot is Ownable, IDubuPot, DubuDividend {
     mapping(uint256 => mapping(address => bool)) public exited;
 
     constructor() DubuDividend() {
-        //CAKE.approve(address(CAKE_MASTER_CHEF), type(uint256).max);
+        DUBU.approve(address(DUBU_CHEF), type(uint256).max);
         startSeasonBlock = block.number;
         emit Start(0);
     }
@@ -521,8 +518,8 @@ contract DubuPot is Ownable, IDubuPot, DubuDividend {
         weights[currentSeason][msg.sender] += weight;
         totalWeights[currentSeason] += weight;
 
-        //CAKE.transferFrom(msg.sender, address(this), amount);
-        //CAKE_MASTER_CHEF.enterStaking(amount);
+        DUBU.transferFrom(msg.sender, address(this), amount);
+        DUBU_CHEF.enter(amount);
 
         _enter(amount);
         emit Enter(currentSeason, msg.sender, amount);
@@ -532,10 +529,10 @@ contract DubuPot is Ownable, IDubuPot, DubuDividend {
         require(checkEnd() == true);
 
         uint256 userCount = userCounts[currentSeason];
-        //(uint256 staked,) = CAKE_MASTER_CHEF.userInfo(0, address(this));
-        //CAKE_MASTER_CHEF.leaveStaking(staked);
-        //uint256 balance = CAKE.balanceOf(address(this));
-        uint256 totalReward = 0;//balance - staked;
+        uint256 staked = DUBU_CHEF.tokenBalances(address(this));
+        DUBU_CHEF.exit(staked);
+        uint256 balance = DUBU.balanceOf(address(this));
+        uint256 totalReward = balance - staked;
 
         // ssr
         uint256 maxSSRCount = userCount * 3 / 100; // 3%
@@ -596,7 +593,7 @@ contract DubuPot is Ownable, IDubuPot, DubuDividend {
         }
 
         // n
-        //CAKE.transfer(msg.sender, amount);
+        DUBU.transfer(msg.sender, amount);
 
         exited[season][msg.sender] = true;
         

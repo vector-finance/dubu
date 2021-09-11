@@ -10,7 +10,7 @@ import "./DubuDividend.sol";
 contract DubuPot is Ownable, IDubuPot, DubuDividend {
 
     IHanulRNG private rng = IHanulRNG(0x92eE48b37386b997FAF1571789cd53A7f9b7cdd7);
-    IDubuChef private constant DUBU_CHEF = IDubuChef(0x73feaa1eE314F8c655E354234017bE2193C9E24E);
+    IDubuChef private constant DUBU_CHEF = IDubuChef(0xd9e7d7428E320D3c25670e47317C3854f6B7A397);
     
     uint256 public period = 720;
     uint256 override public currentSeason = 0;
