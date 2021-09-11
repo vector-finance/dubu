@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.5;
 
-import "@pancakeswap/pancake-swap-lib/contracts/token/BEP20/IBEP20.sol";
-import "./interfaces/IDubuEmitter.sol";
 import "./interfaces/IDubuDividend.sol";
+import "./interfaces/IDubuEmitter.sol";
+import "./interfaces/IDubu.sol";
 
 contract DubuDividend is IDubuDividend {
 
     IDubuEmitter private constant DUBU_EMITTER = IDubuEmitter(0xDDb921d4F0264c10884D652E3aB9704F8189DAf4);
-    IBEP20 internal constant DUBU = IBEP20(0x972543fe8BeC404AB14e0c38e942032297f44B2A);
+    IDubu internal constant DUBU = IDubu(0x972543fe8BeC404AB14e0c38e942032297f44B2A);
 
     uint256 private immutable pid;
 

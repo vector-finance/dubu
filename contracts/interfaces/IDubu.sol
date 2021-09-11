@@ -5,4 +5,5 @@ import "./IFungibleToken.sol";
 
 interface IDubu is IFungibleToken {
     function mint(address to, uint256 amount) external;
+    function burn(uint256 id) external;
 }

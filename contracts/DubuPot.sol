@@ -60,18 +60,23 @@ contract DubuPot is Ownable, IDubuPot, DubuDividend {
         if (amounts[currentSeason][msg.sender] == 0) {
             userCounts[currentSeason] += 1;
         }
+
+        uint256 burnAmount = amount / 10;
+        uint256 realAmount = amount - burnAmount;
         
-        amounts[currentSeason][msg.sender] += amount;
-        totalAmounts[currentSeason] += amount;
-        uint256 weight = (period - (block.number - startSeasonBlock)) * amount;
+        amounts[currentSeason][msg.sender] += realAmount;
+        totalAmounts[currentSeason] += realAmount;
+        uint256 weight = (period - (block.number - startSeasonBlock)) * realAmount;
         weights[currentSeason][msg.sender] += weight;
         totalWeights[currentSeason] += weight;
 
         DUBU.transferFrom(msg.sender, address(this), amount);
-        DUBU_CHEF.enter(amount);
+        // 10% burn
+        DUBU.burn(burnAmount);
+        DUBU_CHEF.enter(realAmount);
 
-        _enter(amount);
-        emit Enter(currentSeason, msg.sender, amount);
+        _enter(realAmount);
+        emit Enter(currentSeason, msg.sender, realAmount);
     }
 
     function end() override external {

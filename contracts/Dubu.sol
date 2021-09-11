@@ -21,4 +21,8 @@ contract Dubu is FungibleToken, IDubu {
     function mint(address to, uint256 amount) onlyEmitter external override {
         _mint(to, amount);
     }
+
+    function burn(uint256 amount) external override {
+        _burn(msg.sender, amount);
+    }
 }
