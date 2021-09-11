@@ -15,7 +15,7 @@ contract DubuEmitter is Ownable, IDubuEmitter {
     }
 
     IDubu public immutable override dubu;
-    uint256 public immutable override emitPerBlock;
+    uint256 public override emitPerBlock;
     uint256 public immutable override startBlock;
 
     PoolInfo[] public override poolInfo;
@@ -64,6 +64,11 @@ contract DubuEmitter is Ownable, IDubuEmitter {
         for (uint256 pid = 0; pid < length; pid += 1) {
             updatePool(pid);
         }
+    }
+
+    function changeEmitPerBlock(uint256 _emitPerBlock) external onlyOwner {
+        massUpdatePools();
+        emitPerBlock = _emitPerBlock;
     }
 
     function add(address to, uint256 allocPoint) external onlyOwner {

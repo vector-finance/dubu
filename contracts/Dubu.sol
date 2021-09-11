@@ -3,22 +3,22 @@ pragma solidity ^0.8.5;
 
 import "./FungibleToken.sol";
 import "./interfaces/IDubu.sol";
-import "./interfaces/IFarmFactory.sol";
+import "./interfaces/IDubuEmitter.sol";
 
 contract Dubu is FungibleToken, IDubu {
 
-    IFarmFactory public factory;
+    IDubuEmitter public emitter;
     
     constructor() FungibleToken("Dubu", "DUBU", "1") {
-        factory = IFarmFactory(msg.sender);
+        emitter = IDubuEmitter(msg.sender);
     }
 
-    modifier onlyFactory {
-        require(msg.sender == address(factory));
+    modifier onlyEmitter {
+        require(msg.sender == address(emitter));
         _;
     }
 
-    function mint(address to, uint256 amount) onlyFactory external override {
+    function mint(address to, uint256 amount) onlyEmitter external override {
         _mint(to, amount);
     }
 }
