@@ -17,9 +17,8 @@ contract DubuDividend is IDubuDividend {
     }
 
     uint256 internal currentBalance = 0;
-    
-    uint256 override public totalTokenBalance = 0;
-    mapping(address => uint256) override public tokenBalances;
+    uint256 internal totalTokenBalance = 0;
+    mapping(address => uint256) internal tokenBalances;
 
     uint256 constant internal pointsMultiplier = 2**128;
     uint256 internal pointsPerShare = 0;

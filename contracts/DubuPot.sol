@@ -83,10 +83,7 @@ contract DubuPot is Ownable, IDubuPot, DubuDividend {
         require(checkEnd() == true);
 
         uint256 userCount = userCounts[currentSeason];
-        uint256 staked = DUBU_CHEF.tokenBalances(address(this));
-        DUBU_CHEF.exit(staked);
-        uint256 balance = DUBU.balanceOf(address(this));
-        uint256 totalReward = balance - staked;
+        uint256 totalReward = DUBU_CHEF.claimableOf(address(this));
 
         // ssr
         uint256 maxSSRCount = userCount * 3 / 100; // 3%
